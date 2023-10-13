@@ -1,15 +1,37 @@
-import socket 
+import socket
 import threading
 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.connect((socket.gethostname(), 1333))
+# Choosing Nickname
+nickname = input("Choose your nickname: ")
 
-#controle das mensagens e do tamanho delas
+# Connecting To Server
+client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client.connect((socket.gethostname(), 1333))
 
-full_msg = ''
-while True:
-    msg = s.recv(8)
-    if len(msg) <= 0: #enquanto houver texto 
-        break
-    full_msg += msg.decode("utf-8")
-print(full_msg)
+# Listening to Server and Sending Nickname
+def receive():
+    while True:
+        try:
+            # Receive Message From Server
+            # If 'NICK' Send Nickname
+            message = client.recv(1024).decode('ascii')
+            if message == 'NICK': #salvar o nickname
+                client.send(nickname.encode('ascii'))
+            else:
+                print(message)
+        except:
+            # Close Connection When Error
+            print("An error occured!")
+            client.close()
+            break
+
+def write():
+    while True:
+        message = '{}: {}'.format(nickname, input(''))
+        client.send(message.encode('ascii'))
+
+receive_thread = threading.Thread(target=receive)
+receive_thread.start()
+
+write_thread = threading.Thread(target=write)
+write_thread.start()
