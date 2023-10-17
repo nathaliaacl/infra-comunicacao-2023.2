@@ -1,5 +1,6 @@
 import socket
 import threading
+from biblio import*
 
 # Choosing Nickname
 nickname = input("Choose your nickname: ")
@@ -19,15 +20,17 @@ def receive():
                 client.send(nickname.encode('ascii'))
             else:
                 print(message)
-        except:
+        except Exception as e :
             # Close Connection When Error
-            print("An error occured!")
+            print(f"An error occured! {e}")
             client.close()
             break
 
 def write():
     while True:
         message = '{}: {}'.format(nickname, input(''))
+        checksum = str(compute_checksum(message))
+        client.send(checksum.encode('ascii'))
         client.send(message.encode('ascii'))
 
 receive_thread = threading.Thread(target=receive)

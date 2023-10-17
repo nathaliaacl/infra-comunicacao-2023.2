@@ -1,5 +1,6 @@
 import socket
 import threading
+from biblio import*
 
 # Connection Data
 #host = '127.0.0.1'
@@ -24,8 +25,17 @@ def handle(client):
     while True:
         try:
             # Broadcasting Messages
-            message = client.recv(1024)
-            broadcast(message)
+            checksum = int(client.recv(1024).decode('ascii'))
+            message = client.recv(200)
+            
+            checksum1 = compute_checksum(message.decode('ascii'))
+            
+            if checksum == checksum1:
+                broadcast(message)
+            else:
+                print('Checksum inválido, reenvie a mensagem')
+                #mandar para o cliente uma flag de erro oara reenviar a mensagem
+                break
 
         except:
             # Removing And Closing Clients
