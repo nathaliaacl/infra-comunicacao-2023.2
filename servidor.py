@@ -16,7 +16,7 @@ server.listen()
 clients = []
 nicknames = []
 
-num_seq_esperado = 1
+
 lock = threading.Lock()
 
 # Sending Messages To All Connected Clients
@@ -26,7 +26,7 @@ def broadcast(message):
 
 # Handling Messages From Clients
 def handle(client):
-    global num_seq_esperado
+    num_seq_esperado = 1
     while True:
         try:
             # Broadcasting Messages
@@ -40,14 +40,17 @@ def handle(client):
             
             checksum1 = compute_checksum(message.decode('ascii'))
             
-            if checksum == checksum1 and num_seq == num_seq_esperado:
-                broadcast(message)
-                with lock:
-                    num_seq_esperado += 1
+            if num_seq == num_seq_esperado:
+                if checksum == checksum1:
+                    broadcast(message)
+                    with lock:
+                        num_seq_esperado += 1
+                else:
+                    print('Checksum inválido, reenvie a mensagem!')
+                    #mandar para o cliente uma flag de erro oara reenviar a mensagem
+                    break
             else:
-                print('Checksum inválido, reenvie a mensagem')
-                #mandar para o cliente uma flag de erro oara reenviar a mensagem
-                break
+                print(f'Pacote de numero {num_seq_esperado} perdido!')
 
         except:
             # Removing And Closing Clients
