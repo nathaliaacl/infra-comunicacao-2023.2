@@ -27,30 +27,43 @@ def broadcast(message):
 # Handling Messages From Clients
 def handle(client):
     num_seq_esperado = 1
+    com_janela = 0
+    fin_janela = 4
     while True:
         try:
             # Broadcasting Messages
+            
             serialized_header = client.recv(1024)
             message = client.recv(200)
             
             header = pickle.loads(serialized_header)
             
-            checksum = int(header[0])
+            checksum = header[0]
             num_seq = header[1]
             
-            checksum1 = compute_checksum(message.decode('ascii'))
-            
-            if num_seq == num_seq_esperado:
-                if checksum == checksum1:
-                    broadcast(message)
-                    with lock:
-                        num_seq_esperado += 1
+            if num_seq > com_janela and num_seq < fin_janela: 
+                
+                checksum1 = compute_checksum(message.decode('ascii'))
+                
+                if num_seq == num_seq_esperado:
+                    if checksum == checksum1:
+                        broadcast(message)
+                        with lock:
+                            num_seq_esperado += 1    
+                        com_janela += 1
+                        fin_janela += 1 
+                    else:
+                        print('Checksum inválido, reenvie a mensagem!')
+                        #mandar para o cliente uma flag de erro oara reenviar a mensagem
+                        break
                 else:
-                    print('Checksum inválido, reenvie a mensagem!')
-                    #mandar para o cliente uma flag de erro oara reenviar a mensagem
-                    break
+                    print(f'Pacote de numero {num_seq_esperado} perdido!')
+                    
+                
             else:
-                print(f'Pacote de numero {num_seq_esperado} perdido!')
+                print("Pacote fora da janela, espere para reenviar")
+                
+            
 
         except:
             # Removing And Closing Clients
@@ -61,6 +74,7 @@ def handle(client):
             broadcast('{} left!'.format(nickname).encode('ascii'))
             nicknames.remove(nickname)
             break
+
 # Receiving / Listening Function
 def receive():
     while True:

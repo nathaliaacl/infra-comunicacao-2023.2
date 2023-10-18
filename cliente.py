@@ -37,7 +37,7 @@ def write():
     while True:
         message = '{}: {}'.format(nickname, input(''))
         
-        checksum = str(compute_checksum(message))
+        checksum = compute_checksum(message)
         with lock:
             num_seq += 1
         
@@ -47,6 +47,7 @@ def write():
         
         client.send(serialized_header)
         client.send(message.encode('ascii'))
+        
 
 receive_thread = threading.Thread(target=receive)
 receive_thread.start()
