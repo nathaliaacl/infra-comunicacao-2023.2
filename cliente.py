@@ -1,6 +1,7 @@
 import socket
 import threading
 from biblio import*
+import pickle 
 
 # Choosing Nickname
 nickname = input("Choose your nickname: ")
@@ -8,6 +9,9 @@ nickname = input("Choose your nickname: ")
 # Connecting To Server
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect((socket.gethostname(), 1333))
+
+num_seq = 0
+lock = threading.Lock()
 
 # Listening to Server and Sending Nickname
 def receive():
@@ -29,12 +33,19 @@ def receive():
             break
 
 def write():
+    global num_seq
     while True:
         message = '{}: {}'.format(nickname, input(''))
         
         checksum = str(compute_checksum(message))
+        with lock:
+            num_seq += 1
         
-        client.send(checksum.encode('ascii'))
+        header = [checksum, num_seq]
+        
+        serialized_header = pickle.dumps(header)
+        
+        client.send(serialized_header)
         client.send(message.encode('ascii'))
 
 receive_thread = threading.Thread(target=receive)
