@@ -16,7 +16,9 @@ def receive():
             # Receive Message From Server
             # If 'NICK' Send Nickname
             message = client.recv(1024).decode('ascii')
+            checksum = compute_checksum(nickname)
             if message == 'NICK': #salvar o nickname
+                client.send(str(checksum).encode('ascii'))
                 client.send(nickname.encode('ascii'))
             else:
                 print(message)
@@ -29,7 +31,9 @@ def receive():
 def write():
     while True:
         message = '{}: {}'.format(nickname, input(''))
+        
         checksum = str(compute_checksum(message))
+        
         client.send(checksum.encode('ascii'))
         client.send(message.encode('ascii'))
 

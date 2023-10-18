@@ -55,17 +55,25 @@ def receive():
 
         # Request And Store Nickname
         client.send('NICK'.encode('ascii'))
+        checksum = int(client.recv(1024).decode('ascii'))
         nickname = client.recv(1024).decode('ascii')
-        nicknames.append(nickname)
-        clients.append(client)
+        
+        checksum1 = compute_checksum(nickname)
+        
+        if checksum == checksum1:
+        
+            nicknames.append(nickname)
+            clients.append(client)
 
-        # Print And Broadcast Nickname
-        print("Nickname is {}".format(nickname))
-        broadcast("{} joined!".format(nickname).encode('ascii'))
-        client.send('Connected to server!'.encode('ascii'))
+            # Print And Broadcast Nickname
+            print("Nickname is {}".format(nickname))
+            broadcast("{} joined!".format(nickname).encode('ascii'))
+            client.send('Connected to server!'.encode('ascii'))
 
-        # Start Handling Thread For Client
-        thread = threading.Thread(target=handle, args=(client,))
-        thread.start()
+            # Start Handling Thread For Client
+            thread = threading.Thread(target=handle, args=(client,))
+            thread.start()
+        else:
+            print('Checksum inválido')
         
 receive()
