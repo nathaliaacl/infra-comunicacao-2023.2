@@ -33,7 +33,7 @@ def receive():
                 else:
                     print(message)
             else:
-                print('Mensagem não foi entregue corretamente')
+                print('Mensagem não foi entregue corretamente, envie novamente!')
                 
         except Exception as e :
             # Close Connection When Error

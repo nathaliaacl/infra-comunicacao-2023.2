@@ -3,10 +3,6 @@ import threading
 from biblio import*
 import pickle
 
-# Connection Data
-#host = '127.0.0.1'
-#port = 55555
-
 # Starting Server
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((socket.gethostname(), 1333))
@@ -43,8 +39,6 @@ def handle(client):
             num_seq = header[1]
             cliente_id = header[2]
             error = header[3]
-            
-            print(error)
                         
             num_seq = num_seq + (cliente_id * 50)
             
@@ -52,22 +46,18 @@ def handle(client):
                 com_janela = cliente_id * 50
                 num_seq_esperado = num_seq_esperado + (cliente_id * 50)
                 flag = 1
-                print('passou aqui')
                 
-            print('num_seq', num_seq)
-            print('id', cliente_id)
-            print('num_esperado', num_seq_esperado)
-            print('comeco', com_janela)                      
-            
             if num_seq > com_janela:
                 
                 checksum1 = compute_checksum(message.decode('ascii'))
                 
                 if num_seq == num_seq_esperado:
+                    
                     if checksum == checksum1:
                         ack = 0
                     else:
                         print('Checksum inválido, reenvie a mensagem!') 
+                        
                 else:
                     print(f'Pacote de numero {num_seq_esperado} perdido!')                    
                       
@@ -83,7 +73,8 @@ def handle(client):
                     num_seq_esperado += 1   
             else:
                 client.send(str(ack).encode('ascii'))
-                num_seq_esperado += 1
+                with lock:
+                    num_seq_esperado += 1
 
         except:
             # Removing And Closing Clients
@@ -123,10 +114,6 @@ def receive():
 
             # Print And Broadcast Nickname
             print("Nickname is {}".format(nickname))
-            #client.send('0'.encode('ascii'))           
-            #broadcast("{} joined!".format(nickname).encode('ascii'))
-            #client.send('0'.encode('ascii'))
-            #client.send('Connected to server!'.encode('ascii'))
 
             # Start Handling Thread For Client
             thread = threading.Thread(target=handle, args=(client,))
