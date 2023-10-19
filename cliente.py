@@ -15,20 +15,32 @@ lock = threading.Lock()
 
 # Listening to Server and Sending Nickname
 def receive():
+    global error
     while True:
         try:
             # Receive Message From Server
             # If 'NICK' Send Nickname
+            error = 'N'
+            ack = int(client.recv(1).decode('ascii'))
+            
+            if error == 'Y':
+                ack = 1
+            
             message = client.recv(1024).decode('ascii')
-            checksum = compute_checksum(nickname)
-            if message == 'NICK': #salvar o nickname
-                client.send(str(checksum).encode('ascii'))
-                client.send(nickname.encode('ascii'))
+            
+            if ack == 0:
+                checksum = compute_checksum(nickname)
+                if message == 'NICK': #salvar o nickname
+                    client.send(str(checksum).encode('ascii'))
+                    client.send(nickname.encode('ascii'))
+                else:
+                    print(message)
             else:
-                print(message)
+                print('Mensagem não foi entregue corretamente')
+                
         except Exception as e :
             # Close Connection When Error
-            print(f"An error occured! {e}")
+            print(f"Ocorreu um erro {e}")
             client.close()
             break
 
@@ -36,6 +48,8 @@ def write():
     global num_seq
     while True:
         message = '{}: {}'.format(nickname, input(''))
+        global error
+        error = input('Deseja que a mensagem tenha erro?[Y/N] ')
         
         checksum = compute_checksum(message)
         with lock:
