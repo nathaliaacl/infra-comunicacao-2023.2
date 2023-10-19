@@ -20,19 +20,16 @@ def receive():
         try:
             # Receive Message From Server
             # If 'NICK' Send Nickname
-            error = 'N'
             ack = int(client.recv(1).decode('ascii'))
             
-            if error == 'Y':
-                ack = 1
-            
-            message = client.recv(1024).decode('ascii')
-            
-            if ack == 0:
+            if ack == 0:            
+                message = client.recv(1024).decode('ascii')
                 checksum = compute_checksum(nickname)
                 if message == 'NICK': #salvar o nickname
                     client.send(str(checksum).encode('ascii'))
                     client.send(nickname.encode('ascii'))
+                    global id_cliente
+                    id_cliente = int(client.recv(1).decode('ascii'))
                 else:
                     print(message)
             else:
@@ -55,7 +52,7 @@ def write():
         with lock:
             num_seq += 1
         
-        header = [checksum, num_seq]
+        header = [checksum, num_seq, id_cliente, error]
         
         serialized_header = pickle.dumps(header)
         

@@ -15,7 +15,7 @@ server.listen()
 # Lists For Clients and Their Nicknames
 clients = []
 nicknames = []
-
+id_cliente = -1
 
 lock = threading.Lock()
 
@@ -28,8 +28,7 @@ def broadcast(message, ack):
 # Handling Messages From Clients
 def handle(client):
     num_seq_esperado = 1
-    com_janela = 0
-    fin_janela = 4
+    flag = 0
     while True:
         try:
             # Broadcasting Messages
@@ -41,9 +40,26 @@ def handle(client):
             header = pickle.loads(serialized_header)
             
             checksum = header[0]
-            num_seq = header[1]            
+            num_seq = header[1]
+            cliente_id = header[2]
+            error = header[3]
             
-            if num_seq > com_janela and num_seq < fin_janela: 
+            print(error)
+                        
+            num_seq = num_seq + (cliente_id * 50)
+            
+            if flag == 0:
+                com_janela = cliente_id * 50
+                num_seq_esperado = num_seq_esperado + (cliente_id * 50)
+                flag = 1
+                print('passou aqui')
+                
+            print('num_seq', num_seq)
+            print('id', cliente_id)
+            print('num_esperado', num_seq_esperado)
+            print('comeco', com_janela)                      
+            
+            if num_seq > com_janela:
                 
                 checksum1 = compute_checksum(message.decode('ascii'))
                 
@@ -51,21 +67,23 @@ def handle(client):
                     if checksum == checksum1:
                         ack = 0
                     else:
-                        print('Checksum inválido, reenvie a mensagem!')                        
+                        print('Checksum inválido, reenvie a mensagem!') 
                 else:
                     print(f'Pacote de numero {num_seq_esperado} perdido!')                    
                       
             else:
                 print("Pacote fora da janela, espere para reenviar")
+                
+            if error == 'Y':
+                ack = 1
              
             if ack == 0:
                 broadcast(message, ack)
                 with lock:
-                    num_seq_esperado += 1    
-                com_janela += 1
-                fin_janela += 1 
+                    num_seq_esperado += 1   
             else:
                 client.send(str(ack).encode('ascii'))
+                num_seq_esperado += 1
 
         except:
             # Removing And Closing Clients
@@ -79,6 +97,7 @@ def handle(client):
 
 # Receiving / Listening Function
 def receive():
+    global id_cliente
     while True:
         # Accept Connection
         client, address = server.accept()
@@ -93,9 +112,14 @@ def receive():
         checksum1 = compute_checksum(nickname)
         
         if checksum == checksum1:
+            
+            id_cliente += 1
         
             nicknames.append(nickname)
             clients.append(client)
+            #client_id.append(id_cliente)
+            
+            client.send(str(id_cliente).encode('ascii'))
 
             # Print And Broadcast Nickname
             print("Nickname is {}".format(nickname))
