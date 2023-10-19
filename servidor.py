@@ -99,7 +99,7 @@ def receive():
     while True:
         # Accept Connection
         client, address = server.accept()
-        print("Connected with {}".format(str(address)))
+        print("Conectado com {}".format(str(address)))
 
         # Request And Store Nickname
         client.send('0'.encode('ascii'))
@@ -120,7 +120,7 @@ def receive():
             client.send(str(id_cliente).encode('ascii'))
 
             # Print And Broadcast Nickname
-            print("Nickname is {}".format(nickname))
+            print("Nickname é {}".format(nickname))
 
             # Start Handling Thread For Client
             thread = threading.Thread(target=handle, args=(client,))

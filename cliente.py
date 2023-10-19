@@ -5,7 +5,7 @@ import pickle
 import time
 
 # Choosing Nickname
-nickname = input("Choose your nickname: ")
+nickname = input("Escolha seu nickname: ")
 
 # Connecting To Server
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -65,11 +65,12 @@ def write():
         
         client.send(serialized_header)
         client.send(message.encode('ascii'))            
-           
-        if flag == 0:
-            response_timer = threading.Thread(target=timer_callback)
-            response_timer.start()
-            flag = 1
+        
+        if error2 == 'Y':   
+            if flag == 0:
+                response_timer = threading.Thread(target=timer_callback)
+                response_timer.start()
+                flag = 1
         
 
 receive_thread = threading.Thread(target=receive)
