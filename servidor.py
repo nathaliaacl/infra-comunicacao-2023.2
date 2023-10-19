@@ -4,31 +4,30 @@ from biblio import*
 import pickle
 import time
 
-# Starting Server
+# Inicializa o servidor
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((socket.gethostname(), 1333))
 server.listen()
 
-# Lists For Clients and Their Nicknames
+# Lista de clientes e nicknames conectados
 clients = []
 nicknames = []
 id_cliente = -1
 
 lock = threading.Lock()
 
-# Sending Messages To All Connected Clients
+# Envia mensagem a todos os clientes conectados
 def broadcast(message, ack):
     for client in clients:     
         client.send(str(ack).encode('ascii'))
         client.send(message)
 
-# Handling Messages From Clients
+# Recebendo e tratando mensagens enviadas pelo cliente
 def handle(client):
     num_seq_esperado = 1
     flag = 0
     while True:
         try:
-            # Broadcasting Messages
                         
             ack = 1
             
@@ -93,7 +92,6 @@ def handle(client):
             nicknames.remove(nickname)
             break
 
-# Receiving / Listening Function
 def receive():
     global id_cliente
     while True:
@@ -115,14 +113,11 @@ def receive():
         
             nicknames.append(nickname)
             clients.append(client)
-            #client_id.append(id_cliente)
             
             client.send(str(id_cliente).encode('ascii'))
 
-            # Print And Broadcast Nickname
             print("Nickname é {}".format(nickname))
 
-            # Start Handling Thread For Client
             thread = threading.Thread(target=handle, args=(client,))
             thread.start()
         else:

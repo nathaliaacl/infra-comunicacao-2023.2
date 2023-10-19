@@ -4,26 +4,26 @@ from biblio import*
 import pickle 
 import time
 
-# Choosing Nickname
+# Escolher nickname
 nickname = input("Escolha seu nickname: ")
 
-# Connecting To Server
+# Conectando ao servidor
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect((socket.gethostname(), 1333))
 
+# Declarando variável do número de sequencia 
 num_seq = 0
 lock = threading.Lock()
   
+# função simula um timer
 def timer_callback():
     time.sleep(5)
     print("Tempo limite excedido. Nenhuma resposta do servidor.")
 
-# Listening to Server and Sending Nickname
+# Recebendo mensgem do servidor
 def receive():
     while True:
         try:
-            # Receive Message From Server
-            # If 'NICK' Send Nickname
             
             ack = int(client.recv(1).decode('ascii')) 
             
@@ -46,7 +46,7 @@ def receive():
             client.close()
             break
         
-
+# Escreve uma mensagem e manda para o servidor
 def write():
     flag = 0
     global num_seq
