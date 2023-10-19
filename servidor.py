@@ -2,6 +2,7 @@ import socket
 import threading
 from biblio import*
 import pickle
+import time
 
 # Starting Server
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -28,6 +29,7 @@ def handle(client):
     while True:
         try:
             # Broadcasting Messages
+                        
             ack = 1
             
             serialized_header = client.recv(1024)
@@ -38,7 +40,8 @@ def handle(client):
             checksum = header[0]
             num_seq = header[1]
             cliente_id = header[2]
-            error = header[3]
+            error1 = header[3]
+            error2 = header[4]
                         
             num_seq = num_seq + (cliente_id * 50)
             
@@ -64,8 +67,12 @@ def handle(client):
             else:
                 print("Pacote fora da janela, espere para reenviar")
                 
-            if error == 'Y':
+            if error1 == 'Y':
                 ack = 1
+                
+            if error2 == 'Y':
+                time.sleep(6) 
+                ack = 1           
              
             if ack == 0:
                 broadcast(message, ack)

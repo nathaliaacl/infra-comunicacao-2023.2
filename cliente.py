@@ -2,6 +2,7 @@ import socket
 import threading
 from biblio import*
 import pickle 
+import time
 
 # Choosing Nickname
 nickname = input("Choose your nickname: ")
@@ -12,15 +13,19 @@ client.connect((socket.gethostname(), 1333))
 
 num_seq = 0
 lock = threading.Lock()
+  
+def timer_callback():
+    time.sleep(5)
+    print("Tempo limite excedido. Nenhuma resposta do servidor.")
 
 # Listening to Server and Sending Nickname
 def receive():
-    global error
     while True:
         try:
             # Receive Message From Server
             # If 'NICK' Send Nickname
-            ack = int(client.recv(1).decode('ascii'))
+            
+            ack = int(client.recv(1).decode('ascii')) 
             
             if ack == 0:            
                 message = client.recv(1024).decode('ascii')
@@ -40,24 +45,31 @@ def receive():
             print(f"Ocorreu um erro {e}")
             client.close()
             break
+        
 
 def write():
+    flag = 0
     global num_seq
     while True:
         message = '{}: {}'.format(nickname, input(''))
-        global error
-        error = input('Deseja que a mensagem tenha erro?[Y/N] ')
+        error1 = input('Deseja que a mensagem tenha erro?[Y/N] ')
+        error2 = input('Deseja estourar o timer?[Y/N]')
         
         checksum = compute_checksum(message)
         with lock:
             num_seq += 1
         
-        header = [checksum, num_seq, id_cliente, error]
+        header = [checksum, num_seq, id_cliente, error1, error2]
         
         serialized_header = pickle.dumps(header)
         
         client.send(serialized_header)
-        client.send(message.encode('ascii'))
+        client.send(message.encode('ascii'))            
+           
+        if flag == 0:
+            response_timer = threading.Thread(target=timer_callback)
+            response_timer.start()
+            flag = 1
         
 
 receive_thread = threading.Thread(target=receive)
